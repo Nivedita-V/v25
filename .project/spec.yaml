@@ -1,0 +1,133 @@
+specVersion: v1
+meta:
+  name: v25
+  image: project-v25
+  description: ""
+  labels: []
+  createdOn: now
+  defaultBranch: master
+layout:
+- path: code/
+  type: code
+  storage: git
+- path: models/
+  type: models
+  storage: gitlfs
+- path: data/
+  type: data
+  storage: gitlfs
+- path: data/scratch/
+  type: data
+  storage: gitignore
+environment:
+  base:
+    registry: nvcr.io
+    image: vjrv0zpbsw9c/pytorch:1.12-cuda11.7
+    supported_architectures:
+    - amd64
+    - arm64
+    cuda_version: 11.7.0
+    description: A Base with CUDA 11.7 and Pytorch 1.12
+    entrypoint_script: ""
+    labels:
+    - cuda11.7
+    - pytorch1.12
+    apps:
+    - name: tensorboard
+      type: tensorboard
+      command: tensorboard --logdir \$TENSORBOARD_LOGS_DIRECTORY --path_prefix=\$PROXY_PREFIX
+      health_check_command: '[ \$(curl -o /dev/null -s -w ''%{http_code}'' http://localhost:\$TENSORBOARD_PORT\$PROXY_PREFIX/)
+        == ''200'' ]'
+      icon_url: ""
+      port: "6006"
+      proxy:
+        strip: ""
+        rewrite: ""
+      stop_cmd: ""
+      uri: http://localhost:6006
+      uri_handler: ""
+      uri_cmd: ""
+    - name: jupyterlab
+      type: jupyterlab
+      command: jupyter notebook --allow-root --port 8888 --ip 0.0.0.0 --no-browser
+        --NotebookApp.base_url=\$PROXY_PREFIX --NotebookApp.default_url=/lab
+      health_check_command: '[ \$(echo url=\$(jupyter notebook list | head -n 2 |
+        tail -n 1 | cut -f1 -d'' '' | grep -v ''Currently'' | sed "s@/?@/tree?@g")
+        | curl -o /dev/null -s -w ''%{http_code}'' --config -) == ''200'' ]'
+      icon_url: ""
+      port: "8888"
+      proxy:
+        strip: ""
+        rewrite: ""
+      stop_cmd: jupyter notebook stop 8888
+      uri: ""
+      uri_handler: ""
+      uri_cmd: jupyter notebook list | head -n 2 | tail -n 1 | cut -f1 -d' ' | grep
+        -v 'Currently'
+    programming_languages:
+    - python3
+    icon_url: ""
+    os: linux
+    os_distro: ubuntu
+    os_distro_release: "20.04"
+    schema_version: "1"
+    user_info:
+      uid: ""
+      gid: ""
+      username: ""
+      is_root: true
+    package_managers:
+    - name: pip
+      binary_path: /opt/conda/bin/pip
+      installed_packages: []
+    - name: conda
+      binary_path: /opt/conda/bin/conda
+      installed_packages:
+      - astunparse
+      - numpy
+      - ninja
+      - pyyaml
+      - setuptools
+      - cmake
+      - cffi
+      - typing_extensions
+      - future
+      - six
+      - requests
+      - dataclasses
+      - mkl
+      - mkl-include
+      - jupyterlab=3.4.4
+      - tensorboard
+      - nodejs
+      - notebook
+      - magma-cuda111
+      - python=3.8
+      - pytorch=1.12
+      - torchvision
+      - torchtext
+      - cudatoolkit=11.7.0
+    - name: apt
+      binary_path: /usr/bin/apt
+      installed_packages:
+      - build-essential
+      - ca-certificates
+      - curl
+      - locales
+      - git
+      - git-lfs
+      - vim
+    package_manager_environment: conda:/opt/conda
+execution:
+  apps: []
+  resources:
+    gpu:
+      requested: 0
+  secrets: []
+  mounts:
+  - type: project
+    target: /project/
+    options: rw
+  - type: volume
+    target: /data/tensorboard/logs
+    options: volumeName=tensorboard-logs-volume

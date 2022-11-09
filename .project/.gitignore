@@ -1,0 +1,7 @@
+# Ignore generated or temporary files
+# Instead of listing all generated files, ignore
+# everything except the specific files to save
+*             # Ignore everything
+!.gitignore   # Except this file
+!spec.yaml    # Except Project Specification
+!configpacks  # Except List of configpacks that have been executed
